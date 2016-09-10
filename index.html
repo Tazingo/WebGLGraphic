@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+Jinbao Xiao
+B481 A5
+-->
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+precision mediump float;
+attribute vec4 vertex;
+attribute vec4 normal;
+attribute vec4 color;
+
+uniform mat4 Model_Matrix;
+uniform mat4 View_Matrix;
+uniform mat4 Proj_Matrix;
+
+varying vec3 outNormal;
+varying vec4 outColor;
+varying vec3 position;
+
+void main()
+{
+    mat4 mvpMat = Proj_Matrix * View_Matrix * Model_Matrix;
+    mat4 mvMat = View_Matrix * Model_Matrix;
+    mat4 normalMat = View_Matrix * Model_Matrix;
+
+
+    gl_Position = mvpMat * vertex;
+    position = vec3(mvMat*vertex);
+    outNormal = vec3(normalMat * normal);
+    outColor = color;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+varying vec3 outNormal;
+varying vec4 outColor;
+//varying vec2 outUV;
+//varying vec3 outLightPos;
+varying vec3 position;
+
+uniform mat4 View_Matrix;
+
+
+uniform vec4 u_lightPos1;
+uniform vec4 u_lightColor1;
+
+vec3 light(){
+    vec3 normal = normalize(outNormal);
+    vec3 surf2camera = normalize(-position);
+
+
+    // Light 1:
+    vec3 surf2light1 = normalize((View_Matrix*u_lightPos1).xyz - position);
+    vec3 reflection1 = reflect(-surf2light1,normal);
+    float diffuse1 = max(0.0,dot(normal,surf2light1));
+
+    float specular1;
+    if (dot(normal,surf2light1) < 0.0) {
+        specular1 = 0.0;
+    } else {
+        specular1 = pow(max(0.0, dot(reflection1, surf2camera)), 50.0);
+    }
+
+
+    // total:
+    vec3 totalDiffuseColor = diffuse1*u_lightColor1.rgb;
+    vec3 totalSpecularColor = specular1 * u_lightColor1.rgb;
+    vec3 totalColor = totalDiffuseColor + totalSpecularColor;
+    return totalColor;
+}
+
+void main()
+{
+
+    vec3 lightColor = light();
+    gl_FragColor = vec4(lightColor*outColor.rgb, 1.0);
+}
+</script>
+
+<script id="fragment-shader2" type="x-shader/x-fragment">
+
+precision mediump float;
+varying vec4 outColor;
+
+
+void main()
+{
+    gl_FragColor = outColor;
+}
+</script>
+
+<script type="text/javascript" src="webgl-utils.js"></script>
+<!--
+    initShader2 use ajax to load shaders
+    can't use locally
+-->
+<script type="text/javascript" src="initShaders.js"></script>
+<script type="text/javascript" src="MV.js"></script>
+<script type="text/javascript" src="entry.js"></script>
+<script type="text/javascript" src="model.coord.js"></script>
+<script type="text/javascript" src="model.cube.js"></script>
+<script type="text/javascript" src="model.plane.js"></script>
+<script type="text/javascript" src="event.js"></script>
+<script type="text/javascript" src="shadow.js"></script>
+<script type="text/javascript" src="index.js"></script>
+
+<body>
+    <div>
+        <canvas id="gl-canvas" width="512" height="512">
+            Oops ... your browser doesn't support the HTML5 canvas element
+        </canvas>
+        <div id='message' style="position:absolute;background-color:#aaa;width:200px;border:3px double #000;">
+            <div style="margin:0 0 0 0;padding:10px 5px 5px">
+                <li>W,A,S,D to move</li>
+                <li>Hold mouse right button to free look</li>
+                <li>E to set light position</li>
+                <li>See <a href='./readme.txt'/>readme</a></li>
+                <br>
+                <li>Enjoy!</li>
+            </div>
+            <hr>
+            <p style="text-align:center" onclick='document.getElementById("message").style.display="none"'><a href='#'>HIDE</a></p>
+        </div>
+        <script type="text/javascript">
+            (function(){
+                var m = document.getElementById("message");
+                var t = window.innerHeight/2 - 100;
+                var l = window.innerWidth/2 - 100;
+                m.style.top = t+"px";
+                m.style.left = l+"px";
+            })()
+        </script>
+    </div>
+</body>
+</html>
