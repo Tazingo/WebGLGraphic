@@ -1,7 +1,7 @@
 # WebGLGraphic
-The final project for Interactive Graphics CSCI-B481 @ Spring 2015  
-The 3D scene implemented via WebGL  
+Archive repo for for Interactive Graphics CSCI-B481 @ Spring 2015  
 
+------------------
 Not fully implement all the feature I wanted yet  
 Could be an interesting stuff  
 Enjoy  
